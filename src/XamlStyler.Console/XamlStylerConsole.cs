@@ -207,7 +207,7 @@ namespace Xavalon.XamlStyler.Console
                 case ProcessType.RawBuffer:
                     //whether the contents of the xaml file has been piped directly through stdin
                     isRawBuffer = true;
-                    files = new List<string>() { "dummy" };
+                    files = new List<string>() { "dummy" }; //there will only ever be one file
                     break;
 
                 default:
@@ -262,7 +262,11 @@ namespace Xavalon.XamlStyler.Console
             Encoding encoding = Encoding.UTF8; // Visual Studio by default uses UTF8
             if (isRawBuffer)
             {
-                originalContent = System.Console.In.ReadToEnd();
+                using (var reader = new StreamReader(System.Console.OpenStandardInput(), System.Console.InputEncoding))
+                {
+                    originalContent = reader.ReadToEnd();
+                    encoding = reader.CurrentEncoding;
+                }
             }
             if (originalContent == null)
             {
