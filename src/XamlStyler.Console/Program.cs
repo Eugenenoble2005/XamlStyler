@@ -47,6 +47,11 @@ namespace Xavalon.XamlStyler.Console
             int numFilesSpecified = options.File?.Count ?? 0;
             bool isFileOptionSpecified = numFilesSpecified != 0;
             bool isDirectoryOptionSpecified = !String.IsNullOrEmpty(options.Directory);
+            //edge case i guess
+            if (options.TakePipe) {
+                processType = ProcessType.RawBuffer;
+                return true;
+            }
             if (isFileOptionSpecified && isDirectoryOptionSpecified)
             {
                 System.Console.Error.WriteLine($"\nError: Cannot specify both file(s) and directory\n");

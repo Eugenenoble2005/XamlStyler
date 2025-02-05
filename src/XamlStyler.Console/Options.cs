@@ -29,12 +29,15 @@ namespace Xavalon.XamlStyler.Console
         public bool IsPassive { get; set; }
 
         [Option("write-to-stdout", Default = false,
-            HelpText = "Instead of modifying the file, write to stdout. In this mode, logs are printed to stderr. Must specify exactly one file. Cannot be compbined with --passive.")]
+            HelpText = "Instead of modifying the file, write to stdout. In this mode, logs are printed to stderr. Must specify exactly one file. Cannot be combined with --passive.")]
         public bool WriteToStdout { get; set; }
 
         [Option('l', "loglevel", Default = LogLevel.Default,
             HelpText = "Levels in order of increasing detail: None, Minimal, Default, Verbose, Debug")]
         public LogLevel LogLevel { get; set; }
+
+        [Option("take-pipe",Default=false,HelpText = "Take file buffer as stdin instead of reading from a file, this will automatically set write-to-stdout to true")]
+        public bool TakePipe {get;set;}
     }
 
     // Styler overrides

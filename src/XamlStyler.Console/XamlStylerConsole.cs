@@ -176,7 +176,7 @@ namespace Xavalon.XamlStyler.Console
         {
             int successCount = 0;
             IList<string> files;
-
+            bool isRawBuffer = false;
             switch (processType)
             {
                 case ProcessType.File:
@@ -204,13 +204,19 @@ namespace Xavalon.XamlStyler.Console
                         files = new List<string>();
                     }
                     break;
+                case ProcessType.RawBuffer:
+                    //whether the contents of the xaml file has been piped directly through stdin
+                    isRawBuffer = true;
+                    files = new List<string>() { "dummy" };
+                    break;
+
                 default:
                     throw new ArgumentException("Invalid ProcessType");
             }
 
             foreach (string file in files)
             {
-                if (this.TryProcessFile(file))
+                if (this.TryProcessFile(file, isRawBuffer))
                 {
                     successCount++;
                 }
@@ -231,11 +237,10 @@ namespace Xavalon.XamlStyler.Console
             }
         }
 
-        private bool TryProcessFile(string file)
+        private bool TryProcessFile(string file, bool isRawBuffer = false)
         {
             this.Log($"{(this.options.IsPassive ? "Checking" : "Processing")}: {file}");
-
-            if (!this.options.Ignore)
+            if (!this.options.Ignore && isRawBuffer == false)
             {
                 string extension = Path.GetExtension(file);
                 this.Log($"Extension: {extension}", LogLevel.Debug);
@@ -255,22 +260,27 @@ namespace Xavalon.XamlStyler.Console
 
             string originalContent = null;
             Encoding encoding = Encoding.UTF8; // Visual Studio by default uses UTF8
-            
-            try
+            if (isRawBuffer)
             {
-                using (var reader = new StreamReader(path))
+                originalContent = System.Console.In.ReadToEnd();
+            }
+            if (originalContent == null)
+            {
+                try
                 {
-                    originalContent = reader.ReadToEnd();
-                    encoding = reader.CurrentEncoding;
-                    this.Log($"\nOriginal Content:\n\n{originalContent}\n", LogLevel.Insanity);
+                    using (var reader = new StreamReader(path))
+                    {
+                        originalContent = reader.ReadToEnd();
+                        encoding = reader.CurrentEncoding;
+                        this.Log($"\nOriginal Content:\n\n{originalContent}\n", LogLevel.Insanity);
+                    }
+                }
+                catch
+                {
+                    this.Log($"Skipping... Invalid file.");
+                    return false;
                 }
             }
-            catch
-            {
-                this.Log($"Skipping... Invalid file.");
-                return false;
-            }
-
             string formattedOutput = String.IsNullOrWhiteSpace(configurationPath)
                 ? this.stylerService.StyleDocument(originalContent)
                 : new StylerService(this.LoadConfiguration(configurationPath), new XamlLanguageOptions()

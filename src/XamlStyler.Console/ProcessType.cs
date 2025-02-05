@@ -6,5 +6,6 @@ namespace Xavalon.XamlStyler.Console
     {
         File,
         Directory,
+        RawBuffer
     }
 }
